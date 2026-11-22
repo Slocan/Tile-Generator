@@ -58,6 +58,12 @@ public:
         f >> j;
         for (auto it = j.begin(); it != j.end(); ++it)
         {
+            if (it.key() == "_way_name_labels")
+            {
+                if (it.value().is_boolean())
+                    way_name_labels_ = it.value().get<bool>();
+                continue;
+            }
             if (it.key().substr(0, 1) == "_")
                 continue;
             
@@ -92,8 +98,15 @@ public:
             config_map[it.key()] = cfg;
         }
         std::cout << "Loaded " << config_map.size() << " features from config." << std::endl;
+        std::cout << "Way-name labels: " << (way_name_labels_ ? "enabled" : "disabled") << std::endl;
         return true;
     }
+
+    /**
+     * @brief Whether way-name labels are enabled for this style file.
+     * @return true if named highways should emit text labels.
+     */
+    bool way_name_labels_enabled() const { return way_name_labels_; }
 
     /**
      * @brief Finds the best matching configuration for a set of tags.
@@ -203,6 +216,7 @@ public:
 
 private:
     std::unordered_map<std::string, FeatureConfig> config_map;
+    bool way_name_labels_ = false; ///< File-wide way-name label switch.
 };
 
 } // namespace nav

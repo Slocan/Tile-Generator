@@ -366,7 +366,8 @@ public:
 
         // Road labels
         create_road_label(feat.points, feat.ref, feat.highway_type, feat.color_rgb565);
-        create_way_name_label(feat.points, feat.name, feat.highway_type, feat.color_rgb565);
+        if (config.way_name_labels_enabled())
+            create_way_name_label(feat.points, feat.name, feat.highway_type, feat.color_rgb565);
     }
 
     void area(const osmium::Area& a)

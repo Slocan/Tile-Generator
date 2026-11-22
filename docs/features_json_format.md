@@ -10,6 +10,8 @@ Each entry in the JSON file is a key-value pair:
 - **Key**: An OSM tag selector, either `"key=value"` (exact match) or `"key"` (matches any value). Note: Compound selectors (separated by commas) are not supported.
 - **Value**: An object specifying the rendering parameters for that feature.
 
+Keys whose name starts with `_` are metadata, not style selectors. The generator skips them when matching OSM tags; they are used for documentation and file-wide switches such as `_way_name_labels`.
+
 ---
 
 ## 2. Feature Parameters
@@ -20,6 +22,16 @@ Each entry in the JSON file is a key-value pair:
 | `color` | string | HTML hex color (`#rrggbb`). Converted to RGB565 in the binary format. |
 | `priority`| integer | Rendering priority (0-15) for line and polygon features; it becomes the lower nibble of the binary zoom_priority. Higher values draw later. |
 | `widths` | object | **Manual Width Scaling**: Map of zoom level to pixels (0.5px units in binary). |
+
+### Way-name labels (global switch)
+
+`_way_name_labels` is a file-wide boolean that controls whether the generator emits a text label for named highway ways. It defaults to `false`; a style file must opt in.
+
+```json
+"_way_name_labels": true
+```
+
+When enabled, only named ways at least 75 m long are labelled, from z16, and only for `primary`, `secondary`, `tertiary`, `unclassified`, `residential`, `living_street`, `pedestrian`, `track`, `path`, `cycleway`, `footway` and `bridleway`. Names are truncated to 40 UTF-8 characters. The labels use font size 0 and are placed after place names and road shields, so those win collisions. The switch does not affect place names, road shields or the pack format, and requires no viewer or firmware changes. The bundled `features-osm-mtb.json` enables it; `features.json` disables it.
 
 ---
 
@@ -114,9 +126,10 @@ Administrative boundaries are extracted using a two-pass scanner and assigned to
 
 ## 6. Special Handling: Text Labels
 
-Labels for places and road references are generated with collision detection:
+Labels for places, road references and named highways are generated with collision detection:
 - **Place Names**: Priority 12-15 based on population.
 - **Road Shields**: Priority 15, matching the bridge/railway layer.
+- **Way Names**: z16+, named highways >= 75 m, font size 0, truncated to 40 UTF-8 characters; enabled by `_way_name_labels` (default `false`) and ranked below ref shields and place names.
 
 The final z-order is the configured 0-15 priority nibble; there is no layer-base arithmetic. Special features override it: bridges use 15, place labels use 12-15 by population, and road shields use 15.
 
